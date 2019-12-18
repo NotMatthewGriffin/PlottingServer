@@ -1,5 +1,6 @@
 from subprocess import Popen
 from json import JSONDecoder
+from random import random
 import socket
 
 def parse_config(config_file):
@@ -49,14 +50,15 @@ class Plot_Daemon:
 def gen_plot_code(point_lists, point_line_specs):
     code = "h=figure();hold();"
     for points, line_spec in zip(point_lists, point_line_specs):
-        print(points)
-        print(line_spec)
         code += f"plot([{', '.join(map(lambda point : str(point['X']), points))}], [{', '.join(map(lambda point : str(point['Y']), points))}], '{line_spec}');"
-    return code + 'waitfor(h);'
+    return code + 'axis(\'equal\');waitfor(h);'
 
 def plot_points(points, line_specs):
     plot_command = gen_plot_code(points, line_specs)
-    Popen([config_data['octave_path'], '--no-gui', '--eval', plot_command])
+    plot_file_name = str(random())+'plot_file.m'
+    with open(plot_file_name, 'w') as plot_file:
+        print(plot_command, file=plot_file)
+    Popen([config_data['octave_path'], '--no-gui', plot_file_name])
 
 if __name__ == "__main__":
     config_data = parse_config(default_config_file)
